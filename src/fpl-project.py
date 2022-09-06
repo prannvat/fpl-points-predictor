@@ -1,33 +1,43 @@
-def game_week_info():
-    import requests
-    fpl_data = requests.get("https://fantasy.premierleague.com/api/bootstrap-static/")
-    # Requesting data using API.
-    print(fpl_data.status_code)
-    # To check if healthy connection with API has been made, should return a code value of 200.
-    fpl_data = fpl_data.json()
-    # Decoding data into json - is user friendly and machine friendly, in terms of being able to read.
-    fpl_data = fpl_data["events"]
-    user_game_week = int(input("Enter desired game week: "))
-    game_week_num = user_game_week - 1
-    # Indexing starts from 0 thus I havse to minus 1 from input.
-    game_week = fpl_data[game_week_num]
-    print(game_week)
-
-
-def player_form():
-    import requests
-    player_data = requests.get("https://fantasy.premierleague.com/api/bootstrap-static/")
-    print(player_data.status_code)
-    # To check if healthy connection with API has been made, should return a code value of 200.
-    player_data = player_data.json()
-    player_data = player_data["elements"]
-    print(player_data)
-    #31
-    player_name = str(input("Enter surname of player you wish to know about"))
-    specific_player_info = player_data[0]
-    print(specific_player_info)
-
+from http.client import REQUESTED_RANGE_NOT_SATISFIABLE
+from pickle import TRUE
+import requests , json
+import pandas as pd
+import numpy as np 
+from pprint import pprint
 
 if __name__ == '__main__':
     # game_week_info()
-    player_form()
+    
+    main_url = 'https://fantasy.premierleague.com/api/' #the base url for all of the FPL endpoints
+
+    # getting data from bootstrap-static endpoint below:
+    bootstrap_URL = requests.get(main_url+'bootstrap-static/').json()
+    pprint(bootstrap_URL, indent=2, depth=1, compact=True)
+    # the above shows the main top-level columns only 
+    # I can now get player data usimg the 'elements field of the API:
+    player_info = bootstrap_URL['elements']
+    #pprint(player_info[0]) #show player data according to what player using index value.
+
+    # usingPandas, I can now make the data I have be in a tabular format.
+    #Pandas is a library made for exactly this purpose.
+    pd.set_option('display.max_columns', None)
+    #now I can create dataframe using the players info
+    player_info = pd.json_normalize(bootstrap_URL['elements'])
+    #print(player_info[['id', 'web_name', 'team', 'element_type','threat']].head())
+
+    #creating dataframe for teams:
+    teams_info = pd.json_normalize(bootstrap_URL['teams'])
+    #print(teams_info.head())
+
+    #player positions using the 'elemebt-types' field:
+    player_positions = pd.json_normalize(bootstrap_URL['element_types'])
+    #print(player_positions.head())
+    #now i will join the olayers to the teams:
+    merged_table = pd.merge(left=player_info, right=teams_info, left_on ='team', right_on='id')
+    print(merged_table[['first_name','second_name', 'name']])
+    #adding the player positions:
+    merged_table = merged_table.merge(player_positions, left_on='element_type' ,right_on='id')
+    
+    #now I will rename the column names to more suitable and meaningful names:
+    merged_table = merged_table.rename(columns={'name':'club_name', 'singular_name':'player_position'})
+    print(merged_table[['first_name','second_name', 'club_name','player_position']])
