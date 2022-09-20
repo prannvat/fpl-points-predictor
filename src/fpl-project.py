@@ -7,31 +7,39 @@ import pandas as pd
 import numpy as np 
 from pprint import pprint
 import matplotlib.pyplot as plt
+from pandas.plotting import scatter_matrix
 import sqlite3
 from sqlalchemy import create_engine
 from PIL import Image
-def interface():
-    import kivy
-    kivy.require('2.1.0')
-    from kivy.app import App #the base class must inherit ftom the App class
-    from kivy.uix.label import Label
-    from kivy.uix.gridlayout import GridLayout
-    from kivy.uix.textinput import TextInput
+import kivy
+kivy.require('2.1.0')
+from kivy.app import App #the base class must inherit ftom the App class
+from kivy.uix.label import Label   
+from kivy.uix.gridlayout import GridLayout 
+from kivy.uix.textinput import TextInput
+from scipy.special import expit as activation_function
+from scipy.stats import truncnorm
 
 
 
-    class SearchScreen(GridLayout):
-        def __init__(self, **kwargs):
-            super(SearchScreen, self).__init__(**kwargs)
-            self.cols = 2
-            self.add_widget(Label(text='Player Name'))
-            self.playername = TextInput(multiline=False)
-            self.add_widget(self.playername)
+class SearchScreen(GridLayout):
+    def __init__(self, **kwargs):
+        super(SearchScreen, self).__init__(**kwargs)
+        self.cols = 2
+        self.add_widget(Label(text='Player Name'))
+        self.playername = TextInput(multiline=False)
+        self.add_widget(self.playername)
+
+# class MyWidget(Widget):
+#     def __init__(self, **kwargs):
+#         super(MyWidget, self).__init__(**kwargs)
+#         with self.canvas:
+#             search()
        
 
-    class MyApp(App):
-        def build(self):
-            return SearchScreen()
+class MyApp(App):
+    def build(self):
+        return SearchScreen()
 
 def every_gameweek_for_player_df(user_choice_player):
     # Getting gameweek information for specific players
@@ -119,51 +127,67 @@ def getting_player_images():
     
     image_url = 'https://resources.premierleague.com/premierleague/photos/players/110x140/p'+image_code+'.png'
     print('lorem ipsium')
-
-# class Position(Enum):
-#     FWD = auto()
-#     MID = auto()
-#     DEF = auto()
-#     GK = auto()
-
-
-
-# class Player:
-#     #creating parent class of players and then different child classes 
-#     @staticmethod
-#     def get_position_from_data_frame(data_frame: pd.DataFrame):
-#         if data_frame["position"] == "FWD":
-#             return Position.FWD
-
-#     def __init__(self, data_frame: pd.DataFrame):
-#         self.first_name: str = data_frame["first_name"] # TODO: fix this
-#         self.last_name: str = data_frame["last_name"]
-#         self.position: Position = self.get_position_from_data_frame(data_frame)
-
-    
-        
-
-#         x = Forwards(user_search_position)
-            
-            
-    
-# class Forwards(Player):
-#     def user_search_position(self, position):
-#         self.playerposition = position
-#         user_wanted_position = input("Enter position: FWD, MID, DEF, GK: ")
-#         return user_wanted_position
         
 def search(): 
+
         
     player_points = weekly_stats_df()
     engine = create_engine('sqlite://', echo=False)
     player_points.to_sql('players',engine, if_exists='replace', index=False)
     user_search_player = input(str("Enter player name: "))
     results = engine.execute("Select * from players where web_name= (?)",user_search_player)
-    final = pd.DataFrame(results, columns=player_points.columns)
-    forwards_stats_df = 'forwards_df.xlsx'
-    final.to_excel(forwards_stats_df, index=False)
-    print(final)
+    one_player_df = pd.DataFrame(results, columns=player_points.columns)
+    player_stats_df = user_search_player+'.xlsx'
+    one_player_df.to_excel(player_stats_df, index=False)
+    return one_player_df
+
+
+def truncated_normal(mean=0, sd=1, low=0, upp=10):
+    return truncnorm(
+        (low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+class NeuralNetwork:
+    def __init__(self, 
+                    no_of_in_nodes, 
+                    no_of_out_nodes, 
+                    no_of_hidden_nodes,
+                    learning_rate):
+            self.no_of_in_nodes = no_of_in_nodes
+            self.no_of_out_nodes = no_of_out_nodes
+            self.no_of_hidden_nodes = no_of_hidden_nodes
+            self.learning_rate = learning_rate 
+            self.create_weight_matrices()
+            
+    def create_weight_matrices(self):
+            """ A method to initialize the weight matrices of the neural network"""
+            rad = 1 / np.sqrt(self.no_of_in_nodes)
+            X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
+            self.weights_in_hidden = X.rvs((self.no_of_hidden_nodes, 
+                                        self.no_of_in_nodes))
+            rad = 1 / np.sqrt(self.no_of_hidden_nodes)
+            X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
+            self.weights_hidden_out = X.rvs((self.no_of_out_nodes, 
+                                            self.no_of_hidden_nodes))
+    def train(self, input_vector, target_vector):
+            pass # More work is needed to train the network
+
+    def run(self, input_vector):
+            """
+            running the network with an input vector 'input_vector'. 
+            'input_vector' can be tuple, list or ndarray
+            """
+            # Turn the input vector into a column vector:
+            input_vector = np.array(input_vector, ndmin=2).T
+            # activation_function() implements the expit function,
+            # which is an implementation of the sigmoid function:
+            input_hidden = activation_function(self.weights_in_hidden @   input_vector)
+            output_vector = activation_function(self.weights_hidden_out @ input_hidden)
+            return output_vector 
+    # Initialize an instance of the class:  
+simple_network = NeuralNetwork(no_of_in_nodes=2,         
+                            no_of_out_nodes=2, 
+                            no_of_hidden_nodes=4,
+                            learning_rate=0.6)
+
 
 if __name__ == '__main__':
     # game_week_info()
@@ -178,7 +202,8 @@ if __name__ == '__main__':
     # print(current_season_gameweek_info(80))
     # using 4 as a random place holder, same with 2 below
     # print(past_seasons_info(427)[['season_name','total_points','minutes','goals_scored','assists']])
-    search()
+    
     # print(weekly_stats_df())
-    # App().run()
+    print(simple_network.run([(3, 4)]))
+    
     # (every_gameweek_for_player_df(318))
