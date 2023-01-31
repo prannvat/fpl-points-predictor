@@ -1,30 +1,80 @@
 
+# from kivy.app import App
+# from kivy.uix.button import Button
+# from kivy.uix.boxlayout import BoxLayout
+# from kivy.uix.popup import Popup
+# from kivy.uix.textinput import TextInput
+# from kivy.uix.label import Label
+# import openpyxl
 
+# class MyApp(App):
+#     def build(self):
+#         layout = BoxLayout(orientation='vertical')
+
+#         # create the "PLAYERS" button
+#         players_button = Button(text='PLAYERS')
+#         players_button.bind(on_press=self.open_players_file)
+#         layout.add_widget(players_button)
+
+#         # create the "SEARCH" button
+#         search_button = Button(text='SEARCH')
+#         search_button.bind(on_press=self.open_search_bar)
+#         layout.add_widget(search_button)
+
+#         return layout
+
+#     def open_players_file(self, instance):
+#         try:
+#             wb = openpyxl.load_workbook('player_points_weekly.xlsx')
+#             sheet = wb.active
+#             data = [[sheet.cell(row=row, column=col).value for col in range(1, sheet.max_column + 1)] for row in range(1, sheet.max_row + 1)]
+#             print(data)
+#         except FileNotFoundError:
+#             print("File not found")
+
+#     def open_search_bar(self, instance):
+#         search_popup = Popup(title='SEARCH', content=TextInput(hint_text='Enter player name'), size_hint=(None, None), size=(400, 400))
+#         search_popup.open()
+
+# if __name__ == "__main__":
+#     MyApp().run()
+
+
+
+
+
+
+# 
 import kivy
-from kivy.app import App  # the base class must inherit ftom the App class
-from kivy.uix.label import Label
-from kivy.uix.button import Button
+from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.image import Image
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.textinput import TextInput
-from kivy.uix.widget import Widget
-from kivy.lang import Builder
-from kivy.properties import ListProperty
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Dense
-kivy.require("2.1.0")
+import psycopg2
 from typing import Tuple, Dict
 
-class RGBColour:
-    def __init__(self, r: int, g: int, b: int, a: float = 1):
-        self.r: int = r
-        self.g: int = g
-        self.b: int = b
-        self.alpha: float = a
-        # Kivy takes rgba in float values from 0 to 1
-        # (it divides actual rgb values by 255)
-        # so it is easier to have a class for rgba
-        # and the background_colour can be of type class RGBColour.
+class PremierLeagueApp(App):
+        
+
+
+
+    def build(self):
+            return LoginScreen()
+
+
+
+class RGBcolour:
+        def __init__(self, r: int, g: int, b: int, a: float = 1):
+                self.r: int = r
+                self.g: int = g
+                self.b: int = b
+                self.alpha: float = a
+                # Kivy takes rgba in float values from 0 to 1
+                # (it divides actual rgb values by 255)
+                # so it is easier to have a class for rgba
+                # and the background_colour can be of type class RGBColour.
 
 
 class AppButton(Button):
@@ -55,23 +105,85 @@ class AppButton(Button):
         )
 
 
-class AppLabel(Label):
-    def __init__(self):
-        pass
+class LoginScreen(GridLayout,PremierLeagueApp):
+    '''A sub class of the main parent Class called PremierLeagueApp and a python class called Gridlayout'''
+    
+    def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.cols = 2
+            self.add_widget(Button(text='Username'))
+            self.username = TextInput(multiline=False)
+            self.add_widget(self.username)
+            self.add_widget(Button(text='Password'))
+            self.password = TextInput(multiline=False, password=True)
+            self.add_widget(self.password)
+            self.submit = Button(text='Submit')
+            self.submit.bind(on_press=self.submit_form)
+            self.add_widget(self.submit)
+
+    def submit_form(self, instance):
+            # Get the input values
+            username = self.username.text
+            password = self.password.text
+
+            # Connect to the database
+            conn = psycopg2.connect(
+                host="Prannvats-MacBook-Pro.local",
+                database="userLogin",
+                user="username",
+                password="password"  
+            )
+ 
+            # Create a cursor
+            cur = conn.cursor()
+
+            # Insert the data into the table
+            cur.execute("""
+                INSERT INTO users (username, password)
+                VALUES (%s, %s)
+            """, (username, password))
+
+            # Commit the changes
+            conn.commit()
+
+            # Close the cursor and connection
+            cur.close()
+            conn.close()
+
+        
+    def menu(self): 
+            '''Allows users to choose between options in main menu''' 
+            layout = GridLayout(cols=3, spacing=10, padding=10)
+            layout.add_widget(Image(source='premlogo.png'))
+            
+            search_button = Button(text='Search')
+            search_button.bind(on_press=self.open_search_screen)
+            layout.add_widget(search_button)
+            
+            players_info_button = Button(text='Players Information')
+            layout.add_widget(players_info_button)
+            
+            self.screen_manager = ScreenManager()
+            self.screen_manager.add_widget(Screen(name='main'))
+            self.screen_manager.add_widget(Screen(name='search'))
+            
+            layout.add_widget(self.screen_manager)
+            
+            return layout
+        
+    def open_search_screen(self, instance):
+            self.screen_manager.current = 'search'
+            search_screen = self.screen_manager.get_screen('search')
+            search_bar = TextInput(text='Enter your search')
+            
+            search_screen.add_widget(search_bar)
+        
+    def search_players(self, playerName):
+            pass
 
 
-class MyApp(App):
-    def build(self):
-        logoBtn = AppButton(
-            "FPL Point Predictor!",
-            15,
-            RGBColour(0, 255, 133),
-            (0.5, 0.5),
-            {"x": 0.25, "y": 0.25},
-        )
-        logoBtn.bind(on_press=self.logoBtnPressed)
-        return logoBtn
 
-    def logoBtnPressed(self, event):
-        f = open("player_points_weekly.xlsx", "r")
-        print(f.read())
+if __name__ == '__main__':
+    PremierLeagueApp().run()
+    
+    

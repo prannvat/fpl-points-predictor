@@ -8,8 +8,9 @@ from sqlalchemy import create_engine
 
 BASE_URL = "https://fantasy.premierleague.com/api/"  # the base url for all of the FPL endpoints
 
+
 def get_all_gameweek_data_for(player_code: int):
-    """ TODO: """
+    """TODO:"""
     # Getting gameweek information for specific players
     element_summary_URL = requests.get(
         BASE_URL + "element-summary/" + str(player_code) + "/"
@@ -29,9 +30,10 @@ def get_all_gameweek_data_for(player_code: int):
     specific_player_df = specific_player_df[["difficulty"]]
     return specific_player_df
 
+
 # TODO: What does this do???
 def current_season_gameweek_info(user_choice_player):
-    """ TODO: """
+    """TODO:"""
     element_summary_url = requests.get(
         BASE_URL + "element-summary/" + str(user_choice_player) + "/"
     ).json()
@@ -43,7 +45,7 @@ def current_season_gameweek_info(user_choice_player):
 
 
 def get_per_season_stats_for(player_code: int):
-    """ TODO: """
+    """TODO:"""
     # Getting gameweek information for specific players
     request_URL = requests.get(
         BASE_URL + "element-summary/" + str(player_code) + "/"
@@ -52,6 +54,7 @@ def get_per_season_stats_for(player_code: int):
 
     specific_player_df_history = pd.json_normalize(request_URL["history_past"])
     return specific_player_df_history
+
 
 def get_all_players_stats_for_this_season():
     """Makes a table with all the stats of all players in each gameweek seperately"""
@@ -88,7 +91,7 @@ def get_all_players_stats_for_this_season():
     ).drop(["element_type", "id"], axis=1)
     # next, i will use the progress_apply() dataframe method,
     # that comes with pandas,
-    #  to apply get_gameweek_history() function 
+    #  to apply get_gameweek_history() function
     # to every row in players_info dataframe.
     # getting gameweek histories for each player
     from tqdm.auto import tqdm
@@ -101,11 +104,10 @@ def get_all_players_stats_for_this_season():
     player_points = pd.concat(df for df in player_points)
     player_points = player_info[["id_player", "web_name", "singular_name_short"]].merge(
         player_points, left_on="id_player", right_on="element"
-
     )
-    
-    
+
     return player_points
+
 
 def total_stats_sum_df():  # this gives the sum of everything and orders the stats in most points scored.
     total_stats_season_df = weekly_stats_df()
@@ -142,8 +144,8 @@ def getting_player_images():
 
 
 def search():
-    """ FIXME: """
-    player_points = weekly_stats_df()
+    """Module that handles the search of the player and the data from which model will make prediction."""
+    player_points = get_all_gameweek_data_for()
     engine = create_engine("sqlite://", echo=False)
     player_points.to_sql("players", engine, if_exists="replace", index=False)
     user_search_player = input(str("Enter player name: "))
@@ -156,13 +158,24 @@ def search():
     one_player_df.to_excel(player_stats_df, index=False)
     return one_player_df
 
+
 def getting_dataset_to_train_nnetwork():
-   
+
     training_df = get_all_players_stats_for_this_season()
-          
-    training_df = training_df[['id_player','opponent_team', 'was_home','round','transfers_in', 'selected','total_points']]
+
+    training_df = training_df[
+        [
+            "id_player",
+            "opponent_team",
+            "was_home",
+            "round",
+            "transfers_in",
+            "selected",
+            "total_points",
+        ]
+    ]
     training_df["was_home"] = training_df["was_home"].astype(int)
-    training_list= training_df.values.tolist()
+    training_list = training_df.values.tolist()
     # player_points_csv = training_df.to_csv(
     #      header=[
     #        "id_player",
@@ -176,10 +189,10 @@ def getting_dataset_to_train_nnetwork():
 
     #     index=False,
     # )
-    file = open('training.csv', 'w')
+    file = open("training.csv", "w")
     writer = csv.writer(file)
     writer.writerows(training_list)
 
 
 if __name__ == "__main__":
-    print(getting_dataset_to_train_nnetwork())
+    getting_dataset_to_train_nnetwork()
