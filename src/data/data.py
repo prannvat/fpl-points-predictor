@@ -4,7 +4,9 @@ import requests
 import pandas as pd
 import numpy as np
 import csv
-from sqlalchemy import create_engine
+import sqlite3
+
+
 
 BASE_URL = "https://fantasy.premierleague.com/api/"  # the base url for all of the FPL endpoints
 
@@ -32,7 +34,7 @@ def get_all_gameweek_data_for(player_code: int):
 
 
 # TODO: What does this do???
-def current_season_gameweek_info(user_choice_player):
+def past_season_gameweek_info(user_choice_player):
     """TODO:"""
     element_summary_url = requests.get(
         BASE_URL + "element-summary/" + str(user_choice_player) + "/"
@@ -91,26 +93,28 @@ def get_all_players_stats_for_this_season():
     ).drop(["element_type", "id"], axis=1)
     # next, i will use the progress_apply() dataframe method,
     # that comes with pandas,
-    #  to apply get_gameweek_history() function
+    #  to apply past_season_gameweek_info() function
     # to every row in players_info dataframe.
     # getting gameweek histories for each player
+    
     from tqdm.auto import tqdm
 
     tqdm.pandas()
     player_points = player_info["id_player"].progress_apply(
-        current_season_gameweek_info
+        past_season_gameweek_info
     )
     # combining results into one dataframe
     player_points = pd.concat(df for df in player_points)
     player_points = player_info[["id_player", "web_name", "singular_name_short"]].merge(
         player_points, left_on="id_player", right_on="element"
     )
+    
 
     return player_points
 
 
 def total_stats_sum_df():  # this gives the sum of everything and orders the stats in most points scored.
-    total_stats_season_df = weekly_stats_df()
+    total_stats_season_df = get_all_players_stats_for_this_season()
     total_stats_season_df = (
         total_stats_season_df.groupby(["element", "web_name", "singular_name_short"])
         .agg(
@@ -133,33 +137,9 @@ def total_stats_sum_df():  # this gives the sum of everything and orders the sta
     return total_stats_season_df
 
 
-def getting_player_images():
 
-    image_url = (
-        "https://resources.premierleague.com/premierleague/photos/players/110x140/p"
-        + image_code
-        + ".png"
-    )
-    print("lorem ipsium")
-
-
-def search():
-    """Module that handles the search of the player and the data from which model will make prediction."""
-    player_points = get_all_gameweek_data_for()
-    engine = create_engine("sqlite://", echo=False)
-    player_points.to_sql("players", engine, if_exists="replace", index=False)
-    user_search_player = input(str("Enter player name: "))
-    # using sql, i can ask for a user input of what player they want, and that players data is accessed.
-    results = engine.execute(
-        "Select * from players where web_name= (?)", user_search_player
-    )
-    one_player_df = pd.DataFrame(results, columns=player_points.columns)
-    player_stats_df = user_search_player + ".xlsx"
-    one_player_df.to_excel(player_stats_df, index=False)
-    return one_player_df
-
-
-def getting_dataset_to_train_nnetwork():
+def get_dataset_to_train_nnetwork():
+    
 
     training_df = get_all_players_stats_for_this_season()
 
@@ -175,6 +155,7 @@ def getting_dataset_to_train_nnetwork():
         ]
     ]
     training_df["was_home"] = training_df["was_home"].astype(int)
+    training_df.to_csv('testsql.csv', index=False)
     training_list = training_df.values.tolist()
     # player_points_csv = training_df.to_csv(
     #      header=[
@@ -192,7 +173,181 @@ def getting_dataset_to_train_nnetwork():
     file = open("training.csv", "w")
     writer = csv.writer(file)
     writer.writerows(training_list)
+    return training_df
+
+
+def sql_player_database(df):
+    
+    '''Using sqlite3 to make all sql tables. Uses all techniques.'''
+   
+    
+    # print(model_df)
+    player_df = df[['element', 'web_name', 'singular_name_short']]
+    players_stats_df = df[['element', 'web_name', 'total_points']]
+    # print(players_stats_df)
+    conn = sqlite3.connect('fpl_players_db.sqlite')
+    cur = conn.cursor()
+    # #Creating these tables on my sql database, they can then be used for aggregate functions etc and cross-parameterized sql.
+    fpl_player_table = '''
+                CREATE TABLE IF NOT EXISTS fpl_player_table (
+                element INTEGER PRIMARY KEY,
+                web_name TEXT,
+                singular_name_short TEXT
+                );
+                '''
+    cur.execute(fpl_player_table)
+    #INSERT OR IGNORE INTO only exerts if it doesn't already exist in table.
+    for _, row in player_df.iterrows():
+        cur.execute("INSERT OR IGNORE INTO fpl_player_table (element, web_name, singular_name_short) VALUES (?,?,?)", 
+                    (row['element'], 
+                    row['web_name'], 
+                    row['singular_name_short']))
+    conn.commit()
+
+    fpl_player_stats_table = '''
+                CREATE TABLE IF NOT EXISTS fpl_player_stats_table (
+                element INTEGER PRIMARY KEY,
+                web_name TEXT,
+                total_points INTEGER
+                );
+                '''
+    cur.execute(fpl_player_stats_table)
+    
+    for _, row in players_stats_df.iterrows():
+        cur.execute("INSERT OR IGNORE INTO fpl_player_stats_table (element, web_name, total_points) VALUES (?,?,?)", 
+                    (row['element'], 
+                    row['web_name'], 
+                    row['total_points']))
+    conn.commit()
+    
+    # cur.execute(" DROP TABLE fpl_player_model_table")
+    # conn.commit()
+    # Create the table
+    cur.execute('''
+    CREATE TABLE IF NOT EXISTS fpl_player_model_table (
+    id_player INTEGER,
+    opponent_team INTEGER,
+    was_home INTEGER,
+    round INTEGER,
+    transfers_in INTEGER,
+    selected INTEGER,
+    total_points INTEGER,
+    PRIMARY KEY (id_player, round)
+    );
+    ''')
+
+
+    # Load the CSV file into a pandas DataFrame
+    df = pd.read_csv('testsql.csv')
+
+    # Insert the data from the DataFrame into the table
+    df.to_sql('fpl_player_model_table', conn, if_exists='replace', index=False)
+
+    conn.commit()
+    
+    
+   
+
+    query = '''
+    CREATE TABLE IF NOT EXISTS fpl_player_final_table AS
+    SELECT *
+    FROM fpl_player_model_table
+    JOIN fpl_player_table
+    ON fpl_player_model_table.id_player = fpl_player_table.element'''
+
+    
+    
+    
+    try:
+        cur.execute(query)
+        conn.commit()
+    except Exception as e:
+        print("Error:", e)
+    
+    user_search = str(input("Enter player Name:"))
+    # CROSS-PARAMETERIZED SQL ASWELL AS AGGREGATE FUNCTIONS.
+    query = '''
+    SELECT AVG(fpl_player_stats_table.total_points)
+    FROM fpl_player_table
+    INNER JOIN fpl_player_stats_table
+    ON fpl_player_table.element = fpl_player_stats_table.element
+    WHERE fpl_player_table.web_name = ? AND fpl_player_stats_table.web_name = ?
+    '''
+    
+    # '?' is used as a placeholder for values in SQL table. Known as parameterized SQL.
+    result = cur.execute(query, (user_search, user_search)).fetchall() #fetchall() retrieves all the rows returned from SELECT statement
+    print(result)
+ 
+    conn.close()
+        
+    #Creating player database with their points
+
+  
+
+class Player:
+    def __init__(self, name, position, children=None):
+        self.name = name
+        self.position = position
+        self.children = [] if children is None else children
+
+def traverse_team(node):
+    print(node.name, node.position)
+    for child in node.children:
+        traverse_team(child)
+
+# Define players in the team
+goalkeeper = Player("Alisson Becker", 
+                    "Goalkeeper")
+defenders = [
+    Player("Trent Alexander-Arnold",
+             "Right Back"),
+    Player("Joe Gomez", 
+            "Center Back"),
+    Player("Virgil van Dijk",
+             "Center Back"),
+    Player("Andrew Robertson", 
+            "Left Back")
+]
+midfielders = [
+    Player("Jordan Henderson", 
+            "Central Midfield"),
+    Player("Georginio Wijnaldum", 
+            "Central Midfield"),
+    Player("James Milner", 
+            "Central Midfield"),
+    Player("Naby Keita", 
+            "Central Midfield")
+]
+forwards = [
+    Player("Sadio Mane", "Left Wing"),
+    Player("Roberto Firmino", "Centre Forward"),
+    Player("Mohamed Salah", "Right Wing")
+]
+
+# Build the team hierarchy
+team = Player("Liverpool", 
+            "Team", 
+            [goalkeeper] + 
+            defenders + 
+            midfielders + 
+            forwards)
+
+# Traverse the team hierarchy
 
 
 if __name__ == "__main__":
-    getting_dataset_to_train_nnetwork()
+    
+    # df = total_stats_sum_df()
+    # print(df)
+    # print(model_df)
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute(''' 
+    CREATE TABLE IF NOT EXISTS users (
+    username TEXT PRIMARY KEY,
+    passwords TEXT);
+    ''')
+    conn.commit()
+    # get_dataset_to_train_nnetwork()
+    # sql_player_database(df)
+ 
