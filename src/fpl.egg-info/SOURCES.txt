@@ -1,0 +1,9 @@
+setup.py
+data/__init__.py
+data/data.py
+fpl.egg-info/PKG-INFO
+fpl.egg-info/SOURCES.txt
+fpl.egg-info/dependency_links.txt
+fpl.egg-info/top_level.txt
+model/__init__.py
+model/training.py
