@@ -1,7 +1,4 @@
 """Module that handles all the Neural Network training."""
-
-# from data import data as data_utils
-
 import tensorflow
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense
@@ -46,7 +43,7 @@ def train_model():
     model.compile(loss="mean_squared_error", optimizer="adam")
 
     # Train the model
-    model.fit(X_train, y_train, epochs=150, batch_size=34)
+    model.fit(X_train, y_train, epochs=150, batch_size=34, )
 
     # Evaluate the model on the test data
     test_loss = model.evaluate(X_test, y_test, verbose=0)
@@ -58,30 +55,5 @@ def train_model():
 
 MODEL_NAME = "test"
 
-def make_prediction():
-    loaded_model = tensorflow.keras.models.load_model('fpl_predictor.h5')
-    
-    prediction_data = prem_app.SearchBar
-    search_instance = prediction_data()
-    arr = search_instance.search(search_instance)
-   
-    
-    new_sample = np.array([[arr[:6]]])
-   
-    new_sample = new_sample.reshape(-1, 6)
-    scaler = StandardScaler()
-# Scale the new sample
-    new_sample = scaler.fit_transform(new_sample)
-    prediction = loaded_model.predict(new_sample)
-    # Use the model to make a prediction
-    
-    print("Prediction:", prediction)
-
 if __name__ == '__main__':
     train_model()
-
-
-
-   
-
-
