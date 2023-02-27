@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.models import load_model
-from app import prem_app
+
 
 
 
@@ -49,6 +49,7 @@ def train_model():
     test_loss = model.evaluate(X_test, y_test, verbose=0)
     print("Test loss:", test_loss)
     model.save('fpl_predictor.h5')
+    
     return X
   
 

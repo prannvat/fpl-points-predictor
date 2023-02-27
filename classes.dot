@@ -1,0 +1,54 @@
+digraph "classes" {
+rankdir=BT
+charset="utf-8"
+"src.app.prem_app.AccountRegisterLayout" [color="black", fontcolor="black", label=<{AccountRegisterLayout|back_button<br ALIGN="LEFT"/>cols : int<br ALIGN="LEFT"/>fpl_logo<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>password<br ALIGN="LEFT"/>register<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>username<br ALIGN="LEFT"/>valid_password : bool<br ALIGN="LEFT"/>valid_username : bool<br ALIGN="LEFT"/>|go_back(instance)<br ALIGN="LEFT"/>register_user(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.AppButton" [color="black", fontcolor="black", label=<{AppButton|<br ALIGN="LEFT"/>|}>, shape="record", style="solid"];
+"src.app.prem_app.DisplayPrediction" [color="black", fontcolor="black", label=<{DisplayPrediction|back_button<br ALIGN="LEFT"/>label<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>previous : str<br ALIGN="LEFT"/>rows : int<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>|on_back_button(instance)<br ALIGN="LEFT"/>update_score_label(player_name, score, average, season_points)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.ErrorPage" [color="black", fontcolor="black", label=<{ErrorPage|back_button<br ALIGN="LEFT"/>label<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>rows : int<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>|<I>on_back_button</I>(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.GreenButton" [color="black", fontcolor="black", label=<{GreenButton|<br ALIGN="LEFT"/>|}>, shape="record", style="solid"];
+"src.app.prem_app.HasAccount" [color="black", fontcolor="black", label=<{HasAccount|no_button<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>rows : int<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>yes_button<br ALIGN="LEFT"/>|on_no_button(instance)<br ALIGN="LEFT"/>on_yes_button(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.LoginErrorPage" [color="black", fontcolor="black", label=<{LoginErrorPage|<br ALIGN="LEFT"/>|on_back_button(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.LoginLayout" [color="black", fontcolor="black", label=<{LoginLayout|back_button<br ALIGN="LEFT"/>cols : int<br ALIGN="LEFT"/>fpl_logo<br ALIGN="LEFT"/>hashed_password : str<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>password<br ALIGN="LEFT"/>password_to_hash<br ALIGN="LEFT"/>register<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>username<br ALIGN="LEFT"/>|go_back(instance)<br ALIGN="LEFT"/>login(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.MainMenu" [color="black", fontcolor="black", label=<{MainMenu|back_button<br ALIGN="LEFT"/>cols : int<br ALIGN="LEFT"/>fpl_logo<br ALIGN="LEFT"/>my_team_button<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>players_info_button<br ALIGN="LEFT"/>search_button<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>|display_team(instance)<br ALIGN="LEFT"/>go_back_login(instance)<br ALIGN="LEFT"/>open_search_screen(instance)<br ALIGN="LEFT"/>player_info(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.PlayerInfoLayout" [color="black", fontcolor="black", label=<{PlayerInfoLayout|back_button<br ALIGN="LEFT"/>cols<br ALIGN="LEFT"/>minimum_height<br ALIGN="LEFT"/>|go_back_to_menu(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.PlayerSearchError" [color="black", fontcolor="black", label=<{PlayerSearchError|<br ALIGN="LEFT"/>|on_back_button(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.PremierLeagueApp" [color="black", fontcolor="black", label=<{PremierLeagueApp|<br ALIGN="LEFT"/>|build()<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.PurpleButton" [color="black", fontcolor="black", label=<{PurpleButton|<br ALIGN="LEFT"/>|}>, shape="record", style="solid"];
+"src.app.prem_app.RGBColour" [color="black", fontcolor="black", label=<{RGBColour|alpha : float<br ALIGN="LEFT"/>b : int<br ALIGN="LEFT"/>g : int<br ALIGN="LEFT"/>r : int<br ALIGN="LEFT"/>|}>, shape="record", style="solid"];
+"src.app.prem_app.RegisterErrorPage" [color="black", fontcolor="black", label=<{RegisterErrorPage|<br ALIGN="LEFT"/>|on_back_button(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.SearchBar" [color="black", fontcolor="black", label=<{SearchBar|back_button<br ALIGN="LEFT"/>cols : int<br ALIGN="LEFT"/>fpl_logo<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>prediction_num : int<br ALIGN="LEFT"/>previous : str<br ALIGN="LEFT"/>search_button<br ALIGN="LEFT"/>search_input<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>|go_back(instance)<br ALIGN="LEFT"/>predict(instance)<br ALIGN="LEFT"/>search(instance, player_name)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.UserTeamLayout" [color="black", fontcolor="black", label=<{UserTeamLayout|back_button<br ALIGN="LEFT"/>camButton<br ALIGN="LEFT"/>cb1Button<br ALIGN="LEFT"/>cb2Button<br ALIGN="LEFT"/>cdmButton<br ALIGN="LEFT"/>cmButton<br ALIGN="LEFT"/>cols : int<br ALIGN="LEFT"/>first_instance<br ALIGN="LEFT"/>gkbutton<br ALIGN="LEFT"/>lbButton<br ALIGN="LEFT"/>lwButton<br ALIGN="LEFT"/>padding : int<br ALIGN="LEFT"/>rbButton<br ALIGN="LEFT"/>rwButton<br ALIGN="LEFT"/>spacing : int<br ALIGN="LEFT"/>stButton<br ALIGN="LEFT"/>|go_back_menu(instance)<br ALIGN="LEFT"/>open_search_screen(instance)<br ALIGN="LEFT"/>}>, shape="record", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.AppButton" [arrowhead="empty", arrowtail="none"];
+"src.app.prem_app.LoginErrorPage" -> "src.app.prem_app.ErrorPage" [arrowhead="empty", arrowtail="none"];
+"src.app.prem_app.PlayerSearchError" -> "src.app.prem_app.ErrorPage" [arrowhead="empty", arrowtail="none"];
+"src.app.prem_app.PurpleButton" -> "src.app.prem_app.AppButton" [arrowhead="empty", arrowtail="none"];
+"src.app.prem_app.RegisterErrorPage" -> "src.app.prem_app.ErrorPage" [arrowhead="empty", arrowtail="none"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.AccountRegisterLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="register", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.AccountRegisterLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.DisplayPrediction" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.ErrorPage" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.HasAccount" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="yes_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.HasAccount" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="no_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.LoginLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="register", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.LoginLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.MainMenu" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="search_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.MainMenu" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="players_info_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.MainMenu" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="my_team_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.MainMenu" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.PlayerInfoLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.SearchBar" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="search_button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="gkbutton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="cb1Button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="cb2Button", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="lbButton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="rbButton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="cdmButton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="cmButton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="camButton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="lwButton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="rwButton", style="solid"];
+"src.app.prem_app.GreenButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="stButton", style="solid"];
+"src.app.prem_app.LoginLayout" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="first_instance", style="solid"];
+"src.app.prem_app.PurpleButton" -> "src.app.prem_app.SearchBar" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+"src.app.prem_app.PurpleButton" -> "src.app.prem_app.UserTeamLayout" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="back_button", style="solid"];
+}

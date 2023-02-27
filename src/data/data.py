@@ -27,14 +27,14 @@ def get_all_gameweek_data_for(player_code: int):
         left_on="round",
         right_on="difficulty",
     )
-    # specific_player_df = specific_player_df[['difficulty','is_home','total_points','minutes','goals_scored','assists']]
+    
     specific_player_df = specific_player_df[["difficulty"]]
     return specific_player_df
 
 
-# TODO: What does this do???
+
 def past_season_gameweek_info(user_choice_player):
-    """Get sum stats for past seasons players have played in the league:"""
+    '''Previous fixtures and results for players'''
     element_summary_url = requests.get(
         BASE_URL + "element-summary/" + str(user_choice_player) + "/"
     ).json()
@@ -46,7 +46,7 @@ def past_season_gameweek_info(user_choice_player):
 
 
 def get_per_season_stats_for(player_code: int):
-    """TODO:"""
+    """Get sum stats for past seasons players have played in the league:"""
     # Getting gameweek information for specific players
     request_URL = requests.get(
         BASE_URL + "element-summary/" + str(player_code) + "/"
@@ -151,19 +151,7 @@ def get_dataset_to_train_nnetwork():
     training_df["was_home"] = training_df["was_home"].astype(int)
     training_df.to_csv("testsql.csv", index=False)
     training_list = training_df.values.tolist()
-    # player_points_csv = training_df.to_csv(
-    #      header=[
-    #        "id_player",
-    #        "opponent_team",
-    #        "was_home",
-    #        "round",
-    #        "transferred_in",
-    #        "selected",
-    #        "total_points"
-    #     ],
-
-    #     index=False,
-    # )
+    
     file = open("training.csv", "w")
     writer = csv.writer(file)
     writer.writerows(training_list)
@@ -213,8 +201,7 @@ def sql_player_database(df):
         )
     conn.commit()
 
-    # cur.execute(" DROP TABLE fpl_player_model_table")
-    # conn.commit()
+   
     # Create the table
     cur.execute(
         """
@@ -278,9 +265,7 @@ def sql_player_database(df):
 conn = sqlite3.connect('fpl_players_db.sqlite')
 c = conn.cursor()
 
-# Retrieve the data from the table
-c.execute("SELECT * FROM fpl_player_stats_table")
-data = c.fetchall()
+
 
 # Define the merge sort function
 def merge_sort(data, col):
@@ -307,62 +292,88 @@ def merge(left, right, col):
     result += right[j:]
     return result
 
-# Call the merge sort function on the data
-sorted_data = merge_sort(data, col=2)
 
-# Create the new table
-c.execute("CREATE TABLE IF NOT EXISTS sorted_table (element INTEGER PRIMARY KEY, web_name TEXT, total_points INTEGER)")
+import heapq
 
-# Insert the sorted data into the new table
-for row in sorted_data:
-    c.execute("INSERT INTO sorted_table (element, web_name, total_points) VALUES (?, ?, ?)", row)
+def optimize_fpl_team(start_team, graph):
+    # Set all nodes to unvisited and initialize weights to infinity
+    unvisited = set(graph.keys())
+    weights = {node: float('inf') for node in graph.keys()}
+    weights[start_team] = 0
+    
+    # Initialize the priority queue with the start node
+    pq = []
+    heapq.heappush(pq, (weights[start_team], start_team))
+    
+    while pq:
+        # Extract the node with the lowest weight
+        curr_weight, curr_node = heapq.heappop(pq)
+        
+        # Mark the node as visited
+        unvisited.remove(curr_node)
+        
+        # Update the weights of unvisited neighbors
+        for neighbor, weight in graph[curr_node].items():
+            if neighbor in unvisited:
+                new_weight = curr_weight + weight
+                if new_weight < weights[neighbor]:
+                    weights[neighbor] = new_weight
+                    heapq.heappush(pq, (new_weight, neighbor))
+    
+    # Extract the optimized FPL team
+    optimized_team = []
+    curr_node = start_team
+    while curr_node:
+        optimized_team.append(curr_node)
+        min_weight = float('inf')
+        next_node = None
+        for neighbor, weight in graph[curr_node].items():
+            if weights[neighbor] < min_weight:
+                min_weight = weights[neighbor]
+                next_node = neighbor
+        curr_node = next_node if next_node != start_team else None
+    
+    return optimized_team
 
-# Commit the changes and close the connection
-conn.commit()
-class Player:
-    def __init__(self, name, position, children=None):
-        self.name = name
-        self.position = position
-        self.children = [] if children is None else children
-
-
-def traverse_team(node):
-    print(node.name, node.position)
-    for child in node.children:
-        traverse_team(child)
-
-
-# Define players in the team
-goalkeeper = Player("Alisson Becker", "Goalkeeper")
-defenders = [
-    Player("Trent Alexander-Arnold", "Right Back"),
-    Player("Joe Gomez", "Center Back"),
-    Player("Virgil van Dijk", "Center Back"),
-    Player("Andrew Robertson", "Left Back"),
-]
-midfielders = [
-    Player("Jordan Henderson", "Central Midfield"),
-    Player("Georginio Wijnaldum", "Central Midfield"),
-    Player("James Milner", "Central Midfield"),
-    Player("Naby Keita", "Central Midfield"),
-]
-forwards = [
-    Player("Sadio Mane", "Left Wing"),
-    Player("Roberto Firmino", "Centre Forward"),
-    Player("Mohamed Salah", "Right Wing"),
-]
-
-# Build the team hierarchy
-team = Player("Liverpool", "Team", [goalkeeper] + defenders + midfielders + forwards)
-
-# Traverse the team hierarchy
+graph = {
+    'Salah': {'Mane': 15, 'Alexander-Arnold': 10},
+    'Mane': {'Salah': 15, 'Firmino': 5},
+    'Alexander-Arnold': {'Salah': 10, 'Robertson': 8},
+    'Robertson': {'Alexander-Arnold': 8, 'Firmino': 4},
+    'Firmino': {'Mane': 5, 'Robertson': 4},
+}
 
 
 if __name__ == "__main__":
 
-    # df = total_stats_sum_df()
+    df = total_stats_sum_df()
     # print(df)
     # print(model_df)
-    print(total_stats_sum_df())
-  
+
+    sql_player_database(df)
+    print(get_all_players_stats_for_this_season())
     
+    conn = sqlite3.connect('fpl_players_db.sqlite')
+    c = conn.cursor()
+    # Call the merge sort function on the data
+    # Retrieve the data from the table
+    c.execute("SELECT * FROM fpl_player_stats_table")
+    
+    data = c.fetchall()
+    sorted_data = merge_sort(data, col=2)
+
+    # c.execute("DROP TABLE sorted_table")
+    # # # Create the new table
+    c.execute("CREATE TABLE IF NOT EXISTS sorted_table (element INTEGER PRIMARY KEY, web_name TEXT, total_points INTEGER)")
+
+    
+    # # print(sorted_data)
+    # # Insert the sorted data into the new table
+    for row in sorted_data:
+        # import pdb; pdb.set_trace()
+        print(row)
+        
+        c.execute("INSERT sorted_table (element, web_name, total_points) VALUES (?, ?, ?)", (row))
+
+    # # Commit the changes and close the connection
+    conn.commit()

@@ -1,3 +1,4 @@
+"""Module that handles all the GUI"""
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
@@ -15,7 +16,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import tensorflow
-
+import hashlib
 
 class RGBColour:
     def __init__(self, r: int, g: int, b: int, a: float = 1):
@@ -23,6 +24,7 @@ class RGBColour:
         self.g: int = g
         self.b: int = b
         self.alpha: float = a
+
 
 
 class AppButton(Button):
@@ -50,6 +52,45 @@ class AppButton(Button):
             **kwargs,
         )
 
+class GreenButton(AppButton):
+    '''Inheritance from parent class AppButton'''
+    def __init__(
+        self,
+        text: str,
+        font_size: int,
+        size_hint: Tuple,
+        pos_hint: Dict,
+        **kwargs,
+    ):
+        super().__init__(
+            text=text,
+            font_size=font_size,
+            background_color=RGBColour(46, 204, 113,1),
+            size_hint=size_hint,
+            pos_hint=pos_hint,
+            **kwargs,
+        )
+
+class PurpleButton(AppButton):
+    '''Inheritance from parent class AppButton'''
+    def __init__(
+        self,
+        text: str,
+        font_size: int,
+        size_hint: Tuple,
+        pos_hint: Dict,
+        **kwargs,
+    ):
+        super().__init__(
+            text=text,
+            font_size=font_size,
+            background_color=RGBColour(90, 34, 139,1),
+            size_hint=size_hint,
+            pos_hint=pos_hint,
+            **kwargs,
+        )
+
+
 
 conn = sqlite3.connect("users_db.sqlite")
 c = conn.cursor()
@@ -70,20 +111,18 @@ class HasAccount(GridLayout, Screen):
         self.add_widget(label)
 
 
-        self.yes_button = AppButton(
+        self.yes_button = GreenButton(
             "YES",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.yes_button)
         self.yes_button.bind(on_press=self.on_yes_button)
 
-        self.no_button = AppButton(
+        self.no_button = GreenButton(
             "NO",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -99,7 +138,8 @@ class HasAccount(GridLayout, Screen):
         self.manager.current = 'register'
 
 
-class LoginErrorPage(GridLayout, Screen):
+class ErrorPage(GridLayout, Screen):
+    '''Parent class from which all the error pages will inherit and they will also override the on_back_button function'''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
@@ -107,15 +147,14 @@ class LoginErrorPage(GridLayout, Screen):
         self.spacing = 10
         self.padding = 80
 
-        label = Label(text="Invalid details, try again", color = (0, 1, 0.52, 1))
-        self.add_widget(label)
+        self.label = Label(text="", color = (0, 1, 0.52, 1))
+        self.add_widget(self.label)
 
 
 
-        self.back_button = AppButton(
+        self.back_button = GreenButton(
             "***Try Again***",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -123,34 +162,47 @@ class LoginErrorPage(GridLayout, Screen):
         self.back_button.bind(on_press=self.on_back_button)
 
     def on_back_button(self,instance):
+        pass
+
+
+class LoginErrorPage(ErrorPage):
+    '''Inhertiance from Error Page parent class'''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Update label text
+        self.label.text = "Invalid details, please try again."
+
+    def on_back_button(self, instance):
+        
         self.manager.current = 'login'
 
 
-class RegisterErrorPage(GridLayout, Screen):
+class RegisterErrorPage(ErrorPage):
+    '''Inhertiance from Error Page parent class'''
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        self.rows = 2
-        self.spacing = 10
-        self.padding = 80
+        # Update label text
+        self.label.text = "Either the username is taken, or details not filled properly.(Password > 5 chars)"
 
-        label = Label(text="Either the username is taken, or details not filled properly.(Password > 6 chars)", color = (0, 1, 0.52, 1))
-        self.add_widget(label)
-
-
-
-        self.back_button = AppButton(
-            "***Try Again***",
-            35,
-            RGBColour(46, 204, 113),
-            (0.1, 0.1),
-            {"x": 0.2, "y": 0.2}
-        )
-        self.add_widget(self.back_button)
-        self.back_button.bind(on_press=self.on_back_button)
-
-    def on_back_button(self,instance):
+    def on_back_button(self, instance):
+        
         self.manager.current = 'register'
+
+
+class PlayerSearchError(ErrorPage):
+    '''Inhertiance from Error Page parent class'''
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Update label text
+        self.label.text = "----Error: not a valid input----"
+
+    def on_back_button(self, instance):
+        
+        self.manager.current = 'search_bar'
+
 
 
 class AccountRegisterLayout(GridLayout, Screen):
@@ -160,42 +212,36 @@ class AccountRegisterLayout(GridLayout, Screen):
         self.cols = 2
         self.spacing = 20
         self.padding = 80
-        self.add_widget(
-            AppButton(
+        self.username_button =  GreenButton(
                 "Username",
                 35,
-                RGBColour(46, 204, 113),
                 (0.3, 0.1),
                 {"x": 0.2, "y": 0.05},
             )
-        )
+        self.add_widget(self.username_button)
         self.username = TextInput(multiline=False,size_hint = (0.5,0.002))
         self.add_widget(self.username)
-        self.add_widget(
-            AppButton(
+        self.password_button = PurpleButton(
                 "Password",
                 35,
-                RGBColour(90, 34, 139),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.05}
             )
-        )
+        self.add_widget(self.password_button)
         self.password = TextInput(multiline=False,size_hint = (0.5,0.002),password=True)
         self.add_widget(self.password)
-        self.register = AppButton(
+        self.register = GreenButton(
             "Register",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.005}
         )
         self.register.bind(on_press=self.register_user)
         self.add_widget(self.register)
 
-        self.back_button = AppButton(
+        self.back_button = GreenButton(
             "Back",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -215,6 +261,7 @@ class AccountRegisterLayout(GridLayout, Screen):
 
         username = self.username.text
         password = self.password.text
+        print(password)
         self.valid_password = False
         self.valid_username = False
 
@@ -240,9 +287,11 @@ class AccountRegisterLayout(GridLayout, Screen):
             if user is not None:
                 self.manager.current = 'register_error'
             else:
+                hashed_password = hashlib.sha256(password.encode())
+                hashed_password = hashed_password.hexdigest()
                 c.execute(
                     "INSERT INTO users (username, passwords) VALUES (?, ?)",
-                    (username, password),
+                    (username, hashed_password),
                 )
                 conn.commit()
                 print("Record inserted successfully.")
@@ -261,10 +310,9 @@ class LoginLayout(GridLayout, Screen):
         self.spacing = 20
         self.padding = 80
         self.add_widget(
-            AppButton(
+            GreenButton(
                 "Username",
                 35,
-                RGBColour(46, 204, 113),
                 (0.3, 0.1),
                 {"x": 0.2, "y": 0.05},
             )
@@ -272,30 +320,32 @@ class LoginLayout(GridLayout, Screen):
         self.username = TextInput(multiline=False,size_hint = (0.5,0.002))
         self.add_widget(self.username)
         self.add_widget(
-            AppButton(
+            PurpleButton(
                 "Password",
                 35,
-                RGBColour(90, 34, 139),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.05}
             )
         )
         self.password = TextInput(multiline=False,size_hint = (0.5,0.002),password=True)
+       
+        # print("password to hash")
+        # print(password_to_hash)
+        # hashed = hashlib.sha256(password_to_hash.encode())
+        # self.hashed_password = hashed.hexdigest()
         self.add_widget(self.password)
-        self.register = AppButton(
-            "Submit",
+        self.register = GreenButton(
+            "Login",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.005}
         )
         self.register.bind(on_press=self.login)
         self.add_widget(self.register)
 
-        self.back_button = AppButton(
+        self.back_button = GreenButton(
             "Back",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -310,9 +360,14 @@ class LoginLayout(GridLayout, Screen):
         conn = sqlite3.connect("users_db.sqlite")
         c = conn.cursor()
 
+        print("Login Input Hashed")
+        self.password_to_hash = self.password.text
+        hashed = hashlib.sha256(self.password_to_hash.encode())
+        self.hashed_password = hashed.hexdigest()
+        print(self.hashed_password)
         c.execute(
             "SELECT * FROM users WHERE username=? AND passwords=?",
-            (self.username.text, self.password.text),
+            (self.username.text, self.hashed_password),
         )
         user = c.fetchone()
 
@@ -320,9 +375,7 @@ class LoginLayout(GridLayout, Screen):
             print("Login successful")
             
             self.manager.current = "menu"
-            username_value = self.username
-            self.username_value = username_value.text
-            return self.username_value
+            
             # ...
 
         else:
@@ -342,20 +395,18 @@ class MainMenu(GridLayout, Screen):
         self.padding = 30
         self.fpl_logo = Image(source="fpl_logo.png")
         self.add_widget(self.fpl_logo)
-        self.search_button = AppButton(
+        self.search_button = GreenButton(
             "Search",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.search_button)
         self.search_button.bind(on_press=self.open_search_screen)
 
-        self.players_info_button = AppButton(
+        self.players_info_button = GreenButton(
             "Players Information",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2},
         )
@@ -363,10 +414,9 @@ class MainMenu(GridLayout, Screen):
         self.add_widget(self.players_info_button)
         self.players_info_button.bind(on_press=self.player_info)
 
-        self.my_team_button = AppButton(
+        self.my_team_button = GreenButton(
             "My Team",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -374,10 +424,9 @@ class MainMenu(GridLayout, Screen):
         self.add_widget(self.my_team_button)
         self.my_team_button.bind(on_press=self.display_team)
 
-        self.back_button = AppButton(
+        self.back_button = GreenButton(
             "Back",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -418,10 +467,9 @@ class SearchBar(GridLayout, Screen):
         self.fpl_logo = Image(source="fpl_logo.png")
         self.add_widget(self.fpl_logo)
         # Create a search button widget
-        self.search_button = AppButton(
+        self.search_button = GreenButton(
             "Search",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.5, "y": 0.5},
         )
@@ -430,10 +478,9 @@ class SearchBar(GridLayout, Screen):
         self.add_widget(self.search_input)
         self.search_button.bind(on_press=self.predict)
         self.add_widget(self.search_button)
-        self.back_button = AppButton(
+        self.back_button = PurpleButton(
             "Back",
             35,
-            RGBColour(90, 34, 139),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -473,7 +520,7 @@ class SearchBar(GridLayout, Screen):
         conn = sqlite3.connect("fpl_players_db.sqlite")
         cur = conn.cursor()
         query = """
-        SELECT AVG (total_points) 
+        SELECT AVG(total_points) 
         FROM fpl_player_final_table 
         WHERE web_name = ? 
         GROUP BY web_name
@@ -500,10 +547,6 @@ class SearchBar(GridLayout, Screen):
         season_points = cur.execute(
             query, (player_name, player_name)
         ).fetchall()  # fetchall() retrieves all the rows returned from SELECT statement
-        
-        
-        
-        
         
         
         return average, season_points
@@ -559,33 +602,7 @@ class SearchBar(GridLayout, Screen):
             display_screen.update_score_label(player_name, prediction_val, average, season_points)
             self.manager.current = 'display_prediction'
 
-    
 
-class PlayerSearchError(GridLayout, Screen):
-    def __init__(self, **kwargs):
-            super().__init__(**kwargs)
-            
-            self.rows = 2
-            self.spacing = 10
-            self.padding = 80
-
-            label = Label(text="----Error: not a valid input----", color = (0, 1, 0.52, 1))
-            self.add_widget(label)
-
-
-
-            self.back_button = AppButton(
-                "***Try Again***",
-                35,
-                RGBColour(46, 204, 113),
-                (0.1, 0.1),
-                {"x": 0.2, "y": 0.2}
-            )
-            self.add_widget(self.back_button)
-            self.back_button.bind(on_press=self.on_back_button)
-
-    def on_back_button(self,instance):
-        self.manager.current = 'search_bar'
 
 class DisplayPrediction(GridLayout,Screen):
 
@@ -605,10 +622,9 @@ class DisplayPrediction(GridLayout,Screen):
 
 
 
-        self.back_button = AppButton(
+        self.back_button = GreenButton(
             "Back",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -630,114 +646,103 @@ class UserTeamLayout(GridLayout, Screen):
         self.padding = 30
         # Add buttons to the layout
         
-        self.gkbutton = AppButton(
+        self.gkbutton = GreenButton(
                 "GK",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.gkbutton)
         self.gkbutton.bind(on_press=self.open_search_screen)
-        self.cb1Button = AppButton(
+        self.cb1Button = GreenButton(
                 "CB",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.cb1Button)
         self.cb1Button.bind(on_press=self.open_search_screen)
-        self.cb2Button = AppButton(
+        self.cb2Button = GreenButton(
                 "CB",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.cb2Button)
         self.cb2Button.bind(on_press=self.open_search_screen)
-        self.lbButton = AppButton(
+        self.lbButton = GreenButton(
                 "LB",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.lbButton)
         self.lbButton.bind(on_press=self.open_search_screen)
 
-        self.rbButton = AppButton(
+        self.rbButton = GreenButton(
                 "RB",
                 35,
-                RGBColour(46, 204, 113),
-                (0.1, 0.1), {"x": 0.2, "y": 0.2}
+                (0.1, 0.1), 
+                {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.rbButton)
         self.rbButton.bind(on_press=self.open_search_screen)
-        self.cdmButton = AppButton(
+        self.cdmButton = GreenButton(
                 "CDM",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.cdmButton)
         self.cdmButton.bind(on_press=self.open_search_screen)
-        self.cmButton = AppButton(
+        self.cmButton = GreenButton(
                 "CM",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.cmButton)
         self.cmButton.bind(on_press=self.open_search_screen)
 
-        self.camButton = AppButton(
+        self.camButton = GreenButton(
                 "CAM",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.camButton)
         self.camButton.bind(on_press=self.open_search_screen)
 
-        self.lwButton = AppButton(
+        self.lwButton = GreenButton(
                 "LW",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.lwButton)
         self.lwButton.bind(on_press=self.open_search_screen)
 
-        self.rwButton = AppButton(
+        self.rwButton = GreenButton(
                 "RW",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.rwButton)
         self.rwButton.bind(on_press=self.open_search_screen)
 
-        self.stButton = AppButton(
+        self.stButton = GreenButton(
                 "ST",
                 35,
-                RGBColour(46, 204, 113),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
         self.add_widget(self.stButton)
         self.stButton.bind(on_press=self.open_search_screen)
 
-        self.back_button = AppButton(
+        self.back_button = PurpleButton(
                 "Back",
                 35,
-                RGBColour(90, 34, 139),
                 (0.1, 0.1),
                 {"x": 0.2, "y": 0.2}
         )
@@ -749,31 +754,7 @@ class UserTeamLayout(GridLayout, Screen):
         self.manager.current = "search_bar"
         self.first_instance = LoginLayout()
         
-        # username_value = self.first_instance.username_value
-        
-        # # Connect to the database
-        # conn = sqlite3.connect("users_db.sqlite")
-        # cursor = conn.cursor()
-        # prediction = SearchBar().predict(instance)
-        # self.player = SearchBar()
-        # player_name = self.player.search_input.text
-        # self.username = LoginLayout()
-        # username_value = self.username.login(instance)
-        # print(username_value)
-        # self.predict = SearchBar()
-        # prediction_value = self.predict.predict(instance)
-        # predicted_points = prediction_value.prediction
-        
-        
-        
-        # table_name = username+'_team'
-        # # Fetch data from the SQL table
-        # cursor.execute(f'''CREATE TABLE IF NOT EXISTS {table_name} (player TEXT, predicted_points INTEGER) ''')
-        
-        # cursor.execute(
-        #     f"INSERT OR IGNORE INTO {table_name} (player, predicted_points) VALUES (?,?)",
-        #     (player_name, predicted_points)
-        #  )
+
 
     def go_back_menu(self, instance):
 
@@ -804,10 +785,9 @@ class PlayerInfoLayout(GridLayout, Screen):
         # Calculate the minimum height of the label layout
         self.minimum_height = len(data) * 100
         # Create a layout to hold the labels
-        self.back_button = AppButton(
+        self.back_button = GreenButton(
             "Back",
             35,
-            RGBColour(46, 204, 113),
             (0.1, 0.1),
             {"x": 0.2, "y": 0.2}
         )
@@ -835,11 +815,15 @@ class PlayerInfoLayout(GridLayout, Screen):
         
         scroll_view.add_widget(label_layout)
         self.add_widget(scroll_view)
+    
     def go_back_to_menu(self,instance):
         self.manager.current = 'menu'
+
+
+        
 class PremierLeagueApp(App):  # inherits from parent class App(kivy's class)
     """Main class, through which screens are defined so they can be switched between"""
-    # some_data = None
+    
     def build(self):
         
         

@@ -1,0 +1,293 @@
+
+
+@startuml
+left to right direction
+
+class AppButton {
+      text: str
+        font_size: int
+        background_color: RGBColour
+        size_hint: Tuple
+        pos_hint: Dict
+    +  __init__()
+}
+class GreenButton {
+    - text : string
+    - font_size : tuple
+    - background_color: RGBColour
+    - size_hint : tuple
+    - pos_hint : Dict
+}
+
+class PurpleButton {
+    - text : string
+    - font_size : tuple
+    - background_color: RGBColour
+    - size_hint : tuple
+    - pos_hint : tuple
+}
+
+class RGBColour {
+    - r: int
+    - g: int
+    - b: int
+    - alpha: float
+}
+
+class UserTeamLayout << (G,orchid) GridLayout >> {
+    - cols : int
+    - spacing : int
+    - padding : int
+    - gkbutton : GreenButton
+    - cb1Button:GreenButton
+    - cb2Button:GreenButton
+    - lbButton:GreenButton
+    - rbButton:GreenButton
+    - cdmButton:GreenButton
+    - cmButton:GreenButton
+    - camButton:GreenButton
+    - lwButton:GreenButton
+    - rwButton:GreenButton
+    - stButton:GreenButton
+    - back_button:PurpleButton
+    + __init__(**kwargs)
+    + open_search_screen(instance)
+    + go_back_menu(instance)
+}
+
+class PlayerInfoLayout << (G,orchid) GridLayout >> {
+    - cols : int
+    - minimum_height : int
+    - back_button : GreenButton
+    + __init__(**kwargs)
+    + go_back_to_menu(instance)
+}
+
+class HasAccount << (G,orchid) GridLayout >> {
+    - cols : int 
+    - spacing : int 
+    - padding : int 
+    - label : Label
+    - yes_button : GreenButton
+    - back_button:GreenButton
+    + __init__(**kwargs)
+    + on_yes_button(instance)
+}
+class AccountRegisterLayout << (G,orchid) GridLayout >> {
+    - cols : int 
+    - spacing : int 
+    - padding : int 
+    - username_button : GreenButton
+    - password_button : PurpleButton
+    - username : TextInput
+    - password : TextInput
+    - back_button:GreenButton
+    + __init__(**kwargs)
+    + register_user(instance)
+    + go_back(instance)
+
+}
+class LoginLayout << (G,orchid) GridLayout >> {
+    - cols : int 
+    - spacing : int 
+    - padding : int 
+    - username_button : GreenButton
+    - password_button : PurpleButton
+    - username : TextInput
+    - password : TextInput
+    - back_button:GreenButton
+    + __init__(**kwargs)
+    + login(instance)
+    + go_back(instance)
+
+}
+
+class MainMenu << (G,orchid) GridLayout >> {
+    - cols : int 
+    - spacing : int 
+    - padding : int 
+    - fpl_logo : Image
+    - search_button : GreenButton
+    - player_info_button : GreenButton
+    - my_team_button : GreenButton
+    - back_button:GreenButton
+    + __init__(**kwargs)
+    + open_search_screen(instance)
+    + display_team(instance)
+    + player_info(instance)
+    + go_back_login(instance)
+
+}
+
+class SearchBar << (G,orchid) GridLayout >> {
+    - cols : int 
+    - spacing : int 
+    - padding : int 
+    - previous : str
+    - fpl_logo : Image
+    - search_input : TextInput
+    - search_button : PurpleButton
+    - back_button : GreenButton
+    + __init__(**kwargs)
+    + go_back(instance)
+    + search(instance)
+    + _get_player_average_and_sum(player_name)
+    + predict(instance)
+
+}
+
+class DisplayPrediction << (G,orchid) GridLayout >> {
+    - rows : int 
+    - spacing : int 
+    - padding : int 
+    - previous : str
+    - label : Image
+    - back_button : GreenButton
+    + __init__(**kwargs)
+    + update_score_label(player_name, score, average,season_points)
+    + on_back_button(instance)
+
+}
+
+
+class PremierLeagueApp {
+    + build
+   
+
+}
+
+App <|-- PremierLeagueApp
+Button <|-- AppButton
+AppButton <|-- GreenButton
+AppButton <|-- PurpleButton 
+AppButton <|-- PlayerInfoLayout 
+Screen <|-- UserTeamLayout 
+Screen <|-- DisplayPrediction 
+Screen <|-- SearchBar
+
+
+
+DisplayPrediction *-- GreenButton
+
+SearchBar *-- GreenButton
+SearchBar *-- PurpleButton
+SearchBar *-- TextInput
+
+GreenButton o-- RGBColour
+PurpleButton o-- RGBColour
+UserTeamLayout *-- GreenButton
+UserTeamLayout *-- PurpleButton
+PlayerInfoLayout *-- GreenButton
+HasAccount *-- GreenButton
+AccountRegisterLayout *-- GreenButton
+AccountRegisterLayout *-- PurpleButton
+LoginLayout *-- GreenButton
+LoginLayout *-- PurpleButton
+MainMenu *-- GreenButton
+MainMenu *-- PurpleButton
+ScrollView -- PlayerInfoLayout
+HasAccount --> Label
+
+AccountRegisterLayout --|> Screen
+
+AccountRegisterLayout *-- TextInput
+LoginLayout --|> Screen
+
+LoginLayout *-- TextInput
+MainMenu --|> Screen
+
+MainMenu  *-- TextInput
+
+PremierLeagueApp *-- SearchBar
+PremierLeagueApp *-- HasAccount
+PremierLeagueApp *-- AccountRegisterLayout 
+PremierLeagueApp *-- LoginLayout
+PremierLeagueApp *-- MainMenu 
+PremierLeagueApp *-- PlayerInfoLayout
+PremierLeagueApp *-- UserTeamLayout
+PremierLeagueApp *-- DisplayPrediction
+top to bottom direction
+@enduml
+
+
+' @startuml
+
+' class ErrorPage << (G,orchid) GridLayout >> {
+'     - rows : int 
+'     - spacing : int 
+'     - padding : int 
+'     - label : Image
+'     - back_button : GreenButton
+'     + __init__(**kwargs)
+   
+'     + on_back_button(instance)
+' }
+
+' class LoginErrorPage {
+'     + __init__(**kwargs)
+'     + on_back_button(instance)
+' }
+
+
+' class RegisterErrorPage {
+'     + __init__(**kwargs)
+'     + on_back_button(instance)
+' }
+
+' class PlayerSearchError {
+'     + __init__(**kwargs)
+'     + on_back_button(instance)
+' }
+
+' class GreenButton {
+'     - text : string
+'     - font_size : tuple
+'     - background_color: RGBColour
+'     - size_hint : tuple
+'     - pos_hint : Dict
+' }
+' ErrorPage --> GreenButton
+' Screen <|-- ErrorPage
+' ErrorPage <|-- LoginErrorPage
+' ErrorPage <|-- RegisterErrorPage
+' ErrorPage <|-- PlayerSearchError
+
+
+' @enduml
+
+
+' @startuml
+
+
+' class AppButton {
+'       text: str
+'         font_size: int
+'         background_color: RGBColour
+'         size_hint: Tuple
+'         pos_hint: Dict
+'     +  __init__()
+' }
+
+' class GreenButton {
+'     - text : string
+'     - font_size : tuple
+'     - background_color: RGBColour
+'     - size_hint : tuple
+'     - pos_hint : Dict
+' }
+
+' class PurpleButton {
+'     - text : string
+'     - font_size : tuple
+'     - background_color: RGBColour
+'     - size_hint : tuple
+'     - pos_hint : tuple
+' }
+
+' Button <|-- AppButton
+' AppButton <|-- GreenButton
+' AppButton <|-- PurpleButton
+' AppButton --> RGBColour
+
+
+' @enduml
